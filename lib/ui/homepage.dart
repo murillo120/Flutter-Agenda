@@ -1,8 +1,10 @@
 import 'dart:io';
-
 import 'package:Agenda/ui/contactPage.dart';
 import 'package:flutter/material.dart';
 import 'package:Agenda/helpers/contacts_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum OrderOptions { orderaz, orderza }
 
 class HomePage extends StatefulWidget {
   @override
@@ -27,10 +29,19 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blueAccent,
         centerTitle: true,
         actions: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 10.0),
-            child: Icon(Icons.menu),
-          )
+          PopupMenuButton<OrderOptions>(
+              itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+                    const PopupMenuItem<OrderOptions>(
+                      child: Text("Ordenar de A-Z"),
+                      value: OrderOptions.orderaz,
+                    ),
+                    const PopupMenuItem<OrderOptions>(
+                      child: Text("Ordenar de Z-A"),
+                      value: OrderOptions.orderza,
+                    )
+                  ],
+                  onSelected: orderList,
+                  )
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -64,9 +75,9 @@ class _HomePageState extends State<HomePage> {
                   shape: BoxShape.circle,
                   image: DecorationImage(
                     image: contacts[index].img != null
-                        ? AssetImage(
-                            "images/no-photo.png") //FileImage(File(contacts[index].img))
+                        ? FileImage(File(contacts[index].img))
                         : AssetImage("images/no-photo.png"),
+                        fit: BoxFit.cover
                   ),
                 ),
               ),
@@ -102,7 +113,7 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (context) {
           return BottomSheet(
-            onClosing: (){},
+            onClosing: () {},
             builder: (context) {
               return Container(
                 padding: EdgeInsets.all(10.0),
@@ -110,7 +121,10 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     FlatButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pop(context);
+                          launch("tel:${contacts[index].phone}");
+                        },
                         child: Text(
                           "Ligar",
                           style: TextStyle(
@@ -128,7 +142,11 @@ class _HomePageState extends State<HomePage> {
                         )),
                     FlatButton(
                         onPressed: () {
-                          helper.deleteContact(index);
+                          helper.deleteContact(contacts[index].id);
+                          setState(() {
+                            contacts.removeAt(index);
+                            Navigator.pop(context);
+                          });
                         },
                         child: Text(
                           "Excluir",
@@ -170,5 +188,25 @@ class _HomePageState extends State<HomePage> {
         this.contacts = contactsList;
       });
     });
+  }
+
+  void orderList(OrderOptions order){
+    switch(order){
+      case OrderOptions.orderaz:
+      contacts.sort((a,b) {
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+      break;
+      case OrderOptions.orderza:
+       contacts.sort((a,b) {
+        return b.name.toLowerCase().compareTo(a.name.toLowerCase());
+      });
+      break;
+    }
+
+    setState(() {
+      
+    });
+
   }
 }

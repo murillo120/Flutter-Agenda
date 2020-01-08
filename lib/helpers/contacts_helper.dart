@@ -10,6 +10,7 @@ final String emailColumn = "emailColumn";
 final String imgColumn = "imgColumn";
 
 class Contacts_helper {
+  
   static final Contacts_helper instance = Contacts_helper.internal();
 
   factory Contacts_helper() => instance;
